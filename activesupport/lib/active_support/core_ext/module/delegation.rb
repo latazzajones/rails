@@ -168,7 +168,7 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil, default: nil)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
     end
@@ -202,6 +202,8 @@ class Module
       # On the other hand it could be that the target has side-effects,
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
+
+      #TODO Tasha needs to get a grasp on module_eval ⬇️
       if allow_nil
         method_def = [
           "def #{method_prefix}#{method}(#{definition})",
@@ -228,6 +230,7 @@ class Module
         ].join ";"
       end
 
+      
       module_eval(method_def, file, line)
     end
 
