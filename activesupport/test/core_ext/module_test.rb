@@ -215,8 +215,8 @@ class ModuleTest < ActiveSupport::TestCase
 #  end
 #
   def test_delegation_with_default
-    invoice = Invoice.new(@david)      
-    assert_equal "nil", invoice.optional_name
+    invoice = Invoice.new(nil)
+    assert_nil invoice.optional_name
   end
 #
 #  def test_delegation_prefix

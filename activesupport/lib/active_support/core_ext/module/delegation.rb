@@ -168,7 +168,8 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil, default: nil)
+  NO_DEFAULT_PASSED = Object.new
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil, default: NO_DEFAULT_PASSED)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
     end
@@ -204,6 +205,7 @@ class Module
       # be doing one call.
 
       #TODO Tasha needs to get a grasp on module_eval ⬇️
+      # if allow_nil is truthy, then default is nil
       if allow_nil
         method_def = [
           "def #{method_prefix}#{method}(#{definition})",
@@ -213,6 +215,16 @@ class Module
           "end",
         "end"
         ].join ";"
+      elsif default != NO_DEFAULT_PASSED
+        define_method "#{method_prefix}#{method}" do |*args, &block|
+          delegate = send(to)
+          if !delegate.nil? || nil.respond_to?(method)
+            delegate.public_send(method, *args, &block)
+          else
+            default
+          end
+        end
+        method_def = ''
       else
         exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
